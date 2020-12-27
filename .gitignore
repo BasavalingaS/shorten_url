@@ -2,3 +2,4 @@
 **.zip
 data/**.txt
 **/__pycache__
+env/**
