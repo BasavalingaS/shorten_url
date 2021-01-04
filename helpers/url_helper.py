@@ -8,17 +8,21 @@ from hashids import Hashids
 class UrlHelper(object):
 
     def insert(self, input_url):
-        old_url = self.get(input_url=input_url)
-        if old_url is None:
-            short_url = self.generate_short_url(input_url)
-            url = Urls(url=input_url, short_url=short_url)
-            with SessionHandler() as session:
+        with SessionHandler() as session:
+            old_url = self.get(input_url=input_url)
+            if old_url is None:
+                short_url = self.generate_short_url(input_url)
+                short_url_id = session.query(Urls).filter_by(short_url=short_url).first()
+                while short_url_id is not None:
+                    short_url = self.generate_short_url(input_url)
+                    short_url_id = session.query(Urls).filter_by(short_url=short_url).first()
+                url = Urls(url=input_url, short_url=short_url)
                 session.add(url)
                 session.commit()
-            return url
-        else:
-            print("Records already exists in db")
-            return old_url
+                return url
+            else:
+                print("Records already exists in db")
+                return old_url
 
     def get(self, url_id=None, input_url=None, short_url=None):
         with SessionHandler() as session:
@@ -39,3 +43,5 @@ class UrlHelper(object):
     @staticmethod
     def generate_short_url(url):
         return Hashids(salt=url).encode(random.randint(2, 999))
+
+
